@@ -1,4 +1,5 @@
 ### Project initial configuration
+#### Production based node.js template - sabbir185
 
 -   [ 01 ] Git Setup
 -   [ 02 ] Node version management setup
@@ -12,4 +13,3 @@
 -   [ 10 ] Logger setup
 -   [ 11 ] Error handling setup
 -   [ 12 ] Tests setup
--   [ 13 ] Create template

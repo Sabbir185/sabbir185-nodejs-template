@@ -1,0 +1,7 @@
+# Ignore artifacts:
+build
+node_modules
+coverage
+dist
+tsconfig.json
+package-lock.json

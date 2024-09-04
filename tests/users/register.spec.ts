@@ -22,6 +22,24 @@ describe("POST /auth/register", () => {
             // Assert
             expect(response.statusCode).toBe(201);
         });
+
+        it("should return valid json response", async () => {
+            // Arrange
+            const userData = {
+                email: "test@example.com",
+                password: "password123",
+                firstName: "John",
+                lastName: "Doe",
+            };
+            // Act
+            const response = await request(app)
+                .post("/auth/register")
+                .send(userData);
+            // Assert
+            expect(
+                (response.headers as Record<string, string>)["content-type"],
+            ).toEqual(expect.stringContaining("json"));
+        });
     });
 
     // For bad case

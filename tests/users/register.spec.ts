@@ -78,6 +78,26 @@ describe("POST /auth/register", () => {
             const userRepository = connection.getRepository(User);
             const users = await userRepository.find();
             expect(users).toHaveLength(1);
+            expect(users[0].email).toEqual(userData.email);
+            expect(users[0].firstName).toEqual(userData.firstName);
+            expect(users[0].lastName).toEqual(userData.lastName);
+        });
+
+        it("it should return an id of the created user", async () => {
+            // Arrange
+            const userData = {
+                email: "test@example.com",
+                password: "password123",
+                firstName: "John",
+                lastName: "Doe",
+            };
+            // Act
+            const res = await request(app as any)
+                .post("/auth/register")
+                .send(userData);
+            // Assert
+            expect(res.body).toHaveProperty("id");
+            expect(typeof res.body.id).toBe("number");
         });
     });
 

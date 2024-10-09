@@ -40,6 +40,19 @@ describe("POST /auth/register", () => {
                 (response.headers as Record<string, string>)["content-type"],
             ).toEqual(expect.stringContaining("json"));
         });
+
+        it("should persist the user in the database", async () => {
+            // Arrange
+            const userData = {
+                email: "test@example.com",
+                password: "password123",
+                firstName: "John",
+                lastName: "Doe",
+            };
+            // Act
+            await request(app).post("/auth/register").send(userData);
+            // Assert
+        });
     });
 
     // For bad case

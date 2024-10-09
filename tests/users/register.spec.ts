@@ -1,10 +1,31 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import request from "supertest";
 import app from "../../src/app";
+import { DataSource } from "typeorm";
+import { AppDataSource } from "../../src/config/data-source";
+import { User } from "../../src/entity/User";
+import { truncateTables } from "../utils";
 
 // 3 principal --> AAA
 // A -> Arrange, A -> Act, A -> Assert
 
 describe("POST /auth/register", () => {
+    let connection: DataSource;
+
+    // jest hook
+    beforeAll(async () => {
+        connection = await AppDataSource.initialize();
+    });
+
+    beforeEach(async () => {
+        // database truncate
+        await truncateTables(connection);
+    });
+
+    afterAll(async () => {
+        await connection.destroy();
+    });
+
     // For good case
     describe("Given all fields", () => {
         it("should return the 201 status code", async () => {
@@ -16,7 +37,7 @@ describe("POST /auth/register", () => {
                 lastName: "Doe",
             };
             // Act
-            const response = await request(app)
+            const response = await request(app as any)
                 .post("/auth/register")
                 .send(userData);
             // Assert
@@ -32,7 +53,7 @@ describe("POST /auth/register", () => {
                 lastName: "Doe",
             };
             // Act
-            const response = await request(app)
+            const response = await request(app as any)
                 .post("/auth/register")
                 .send(userData);
             // Assert
@@ -50,8 +71,13 @@ describe("POST /auth/register", () => {
                 lastName: "Doe",
             };
             // Act
-            await request(app).post("/auth/register").send(userData);
+            await request(app as any)
+                .post("/auth/register")
+                .send(userData);
             // Assert
+            const userRepository = connection.getRepository(User);
+            const users = await userRepository.find();
+            expect(users).toHaveLength(1);
         });
     });
 

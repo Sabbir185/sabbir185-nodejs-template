@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import app from "./src/app";
 import { doSum } from "./src/utils";
 import request from "supertest";
@@ -11,7 +12,9 @@ describe.skip("App", () => {
 
     // integration tests
     it("should should return 200 status code", async () => {
-        const response = await request(app).get("/").send();
+        const response = await request(app as any)
+            .get("/")
+            .send();
         expect(response.statusCode).toBe(200);
     });
 });

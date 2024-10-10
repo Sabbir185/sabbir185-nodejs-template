@@ -4,7 +4,8 @@ import app from "../../src/app";
 import { DataSource } from "typeorm";
 import { AppDataSource } from "../../src/config/data-source";
 import { User } from "../../src/entity/User";
-import { truncateTables } from "../utils";
+import { Roles } from "../../src/constants";
+// import { truncateTables } from "../utils";
 
 // 3 principal --> AAA
 // A -> Arrange, A -> Act, A -> Assert
@@ -19,7 +20,11 @@ describe("POST /auth/register", () => {
 
     beforeEach(async () => {
         // database truncate
-        await truncateTables(connection);
+        // await truncateTables(connection);
+
+        // manually synchronize the database
+        await connection.dropDatabase();
+        await connection.synchronize();
     });
 
     afterAll(async () => {
@@ -98,6 +103,25 @@ describe("POST /auth/register", () => {
             // Assert
             expect(res.body).toHaveProperty("id");
             expect(typeof res.body.id).toBe("number");
+        });
+
+        it("should have a customer role", async () => {
+            // Arrange
+            const userData = {
+                email: "test@example.com",
+                password: "password123",
+                firstName: "John",
+                lastName: "Doe",
+            };
+            // Act
+            await request(app as any)
+                .post("/auth/register")
+                .send(userData);
+            // Assert
+            const userRepository = connection.getRepository(User);
+            const users = await userRepository.find();
+            expect(users[0]).toHaveProperty("role");
+            expect(users[0].role).toBe(Roles.CUSTOMER);
         });
     });
 

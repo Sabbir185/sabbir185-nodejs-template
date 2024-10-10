@@ -15,5 +15,6 @@ export default tseslint.config({
         "prefer-const": "error",
         "no-console": "warn",
         "dot-notation": "error",
+        "@typescript-eslint/no-unused-vars": "warn",
     },
 });

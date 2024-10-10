@@ -185,5 +185,33 @@ describe("POST /auth/register", () => {
             const user = await userRepository.find();
             expect(user).toHaveLength(0);
         });
+
+        it.todo("should return 400 status code if password field is missing");
+        it.todo("should return 400 status code if firstName field is missing");
+        it.todo("should return 400 status code if lastName field is missing");
+    });
+
+    describe("Fields are not in proper format", () => {
+        it("should trim the email field", async () => {
+            // Arrange
+            const userData = {
+                email: "  test@example.com  ",
+                password: "password123",
+                firstName: "John",
+                lastName: "Doe",
+            };
+            // Act
+            await request(app as any)
+                .post("/auth/register")
+                .send(userData);
+            // Assert
+            const userRepository = connection.getRepository(User);
+            const users = await userRepository.find();
+            expect(users[0].email).toBe("test@example.com");
+        });
+
+        it.todo(
+            "should return 400 status code if email is not a valid email address",
+        );
     });
 });

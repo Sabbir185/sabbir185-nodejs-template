@@ -88,7 +88,7 @@ describe("POST /auth/register", () => {
             expect(users[0].lastName).toEqual(userData.lastName);
         });
 
-        it("it should return an id of the created user", async () => {
+        it("should return an id of the created user", async () => {
             // Arrange
             const userData = {
                 email: "test@example.com",
@@ -122,6 +122,26 @@ describe("POST /auth/register", () => {
             const users = await userRepository.find();
             expect(users[0]).toHaveProperty("role");
             expect(users[0].role).toBe(Roles.CUSTOMER);
+        });
+
+        it("should store the hashed password in the database", async () => {
+            // Arrange
+            const userData = {
+                email: "test@example.com",
+                password: "password123",
+                firstName: "John",
+                lastName: "Doe",
+            };
+            // Act
+            await request(app as any)
+                .post("/auth/register")
+                .send(userData);
+            // Assert
+            const userRepository = connection.getRepository(User);
+            const users = await userRepository.find();
+            expect(users[0].password).not.toBe(userData.password);
+            expect(users[0].password).toHaveLength(60);
+            expect(users[0].password).toMatch(/^\$2b\$\d+\$/);
         });
     });
 

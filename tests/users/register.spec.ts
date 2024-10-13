@@ -6,6 +6,7 @@ import { AppDataSource } from "../../src/config/data-source";
 import { User } from "../../src/entity/User";
 import { Roles } from "../../src/constants";
 import { isJWT } from "../utils";
+import { RefreshToken } from "../../src/entity/RefreshToken";
 // import { truncateTables } from "../utils";
 
 // 3 principal --> AAA
@@ -193,11 +194,36 @@ describe("POST /auth/register", () => {
                     refreshToken = cookie.split(";")[0].split("=")[1];
                 }
             });
-            console.log(accessToken);
             expect(accessToken).not.toBeFalsy();
             expect(refreshToken).not.toBeFalsy();
             expect(isJWT(accessToken)).toBeTruthy();
             expect(isJWT(refreshToken)).toBeTruthy();
+        });
+
+        it("sholud store the refresh token in the database", async () => {
+            // Arrange
+            const userData = {
+                email: "test@example.com",
+                password: "password123",
+                firstName: "John",
+                lastName: "Doe",
+            };
+            // Act
+            const response = await request(app as any)
+                .post("/auth/register")
+                .send(userData);
+            // Assert
+            const refreshTokenRepository =
+                connection.getRepository(RefreshToken);
+            // const refreshTokens = await refreshTokenRepository.find();
+            // expect(refreshTokens).toHaveLength(1);
+            const tokens = await refreshTokenRepository
+                .createQueryBuilder("refreshToken")
+                .where("refreshToken.userId = :userId", {
+                    userId: (response.body as Record<string, string>).id,
+                })
+                .getMany();
+            expect(tokens).toHaveLength(1);
         });
     });
     // For bad case

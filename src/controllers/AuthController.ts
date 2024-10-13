@@ -8,6 +8,8 @@ import { validationResult } from "express-validator";
 import { JwtPayload, sign } from "jsonwebtoken";
 import createHttpError from "http-errors";
 import { Config } from "../config";
+import { AppDataSource } from "../config/data-source";
+import { RefreshToken } from "../entity/RefreshToken";
 
 export class AuthController {
     constructor(
@@ -64,7 +66,22 @@ export class AuthController {
                 expiresIn: "1h",
                 issuer: "auth-service",
             });
+            res.cookie("accessToken", accessToken, {
+                domain: "localhost",
+                sameSite: "strict",
+                maxAge: 1000 * 60 * 60, // 1h
+                httpOnly: true,
+                secure: true,
+            });
 
+            // Persist the refresh token
+            const MS_IN_YEAR = 1000 * 60 * 60 * 24 * 365;
+            const refreshTokenRepository =
+                AppDataSource.getRepository(RefreshToken);
+            const newRefreshToken = await refreshTokenRepository.save({
+                user,
+                expiresAt: new Date(Date.now() + MS_IN_YEAR),
+            });
             // refresh token
             const refreshToken = sign(
                 payload,
@@ -73,16 +90,9 @@ export class AuthController {
                     algorithm: "HS256",
                     expiresIn: "1y",
                     issuer: "auth-service",
+                    jwtid: String(newRefreshToken.id),
                 },
             );
-
-            res.cookie("accessToken", accessToken, {
-                domain: "localhost",
-                sameSite: "strict",
-                maxAge: 1000 * 60 * 60, // 1h
-                httpOnly: true,
-                secure: true,
-            });
             res.cookie("refreshToken", refreshToken, {
                 domain: "localhost",
                 sameSite: "strict",

@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { DataSource } from "typeorm";
+import request from "supertest";
 import { AppDataSource } from "../../src/config/data-source";
+import app from "../../src/app";
 
 describe("POST /auth/login", () => {
     let connection: DataSource;
@@ -23,6 +26,27 @@ describe("POST /auth/login", () => {
     });
 
     describe("Given all fields", () => {
-        it.todo("should login the user");
+        it("should login the user", async () => {
+            // Arrange
+            const userData = {
+                email: "test@example.com",
+                password: "password123",
+                firstName: "John",
+                lastName: "Doe",
+            };
+            const loginData = {
+                email: "test@example.com",
+                password: "password123",
+            };
+            // Act
+            await request(app as any)
+                .post("/auth/register")
+                .send(userData);
+            const response = await request(app as any)
+                .post("/auth/login")
+                .send(loginData);
+            // Assert
+            expect(response.status).toBe(200);
+        });
     });
 });

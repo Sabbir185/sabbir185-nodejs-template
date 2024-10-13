@@ -5,6 +5,7 @@ import { DataSource } from "typeorm";
 import { AppDataSource } from "../../src/config/data-source";
 import { User } from "../../src/entity/User";
 import { Roles } from "../../src/constants";
+import { isJWT } from "../utils";
 // import { truncateTables } from "../utils";
 
 // 3 principal --> AAA
@@ -163,8 +164,42 @@ describe("POST /auth/register", () => {
             expect(response.statusCode).toBe(400);
             expect(user).toHaveLength(1);
         });
-    });
 
+        it("should return the access and refresh token inside a cookie", async () => {
+            // Arrange
+            const userData = {
+                email: "test@example.com",
+                password: "password123",
+                firstName: "John",
+                lastName: "Doe",
+            };
+            // Act
+            const response = await request(app as any)
+                .post("/auth/register")
+                .send(userData);
+            // Assert
+            interface Headers {
+                ["set-cookie"]: string[];
+            }
+            const cookies =
+                (response.headers as unknown as Headers)["set-cookie"] || [];
+            let accessToken: string = "";
+            let refreshToken: string = "";
+            cookies.forEach((cookie) => {
+                if (cookie.startsWith("accessToken=")) {
+                    accessToken = cookie.split(";")[0].split("=")[1];
+                }
+                if (cookie.startsWith("refreshToken=")) {
+                    refreshToken = cookie.split(";")[0].split("=")[1];
+                }
+            });
+            console.log(accessToken);
+            expect(accessToken).not.toBeFalsy();
+            expect(refreshToken).not.toBeFalsy();
+            expect(isJWT(accessToken)).toBeTruthy();
+            expect(isJWT(refreshToken)).toBeTruthy();
+        });
+    });
     // For bad case
     describe("Fields are missing", () => {
         it("should return 400 status code if email field is missing", async () => {

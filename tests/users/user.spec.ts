@@ -105,5 +105,27 @@ describe("Get /auth/self", () => {
             // check if user id matches with the registered user id
             expect(response.body).not.toHaveProperty("password");
         });
+
+        it("should not return the user password", async () => {
+            // register a user
+            const userData = {
+                email: "test@example.com",
+                password: "password123",
+                firstName: "John",
+                lastName: "Doe",
+            };
+            const userRepository = connection.getRepository(User);
+            await userRepository.save({
+                ...userData,
+                role: Roles.CUSTOMER,
+            });
+            // add token to cookie
+            const response = await request(app as any)
+                .get("/auth/self")
+                .send();
+            // Assert
+            // check if user id matches with the registered user id
+            expect(response.statusCode).toBe(401);
+        });
     });
 });

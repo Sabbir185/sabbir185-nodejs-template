@@ -150,4 +150,11 @@ export class AuthController {
         const user = await this.userService.findById(Number(req.auth.sub));
         return res.status(200).json({ ...user, password: undefined });
     }
+
+    async refresh(req: AuthRequest, res: Response, next: NextFunction) {
+        console.log({ "refresh : ": req.auth });
+
+        // TODO: implement refresh token
+        return res.status(200).json({ message: "refresh token" });
+    }
 }

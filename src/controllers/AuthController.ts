@@ -152,9 +152,53 @@ export class AuthController {
     }
 
     async refresh(req: AuthRequest, res: Response, next: NextFunction) {
-        console.log({ "refresh : ": req.auth });
-
-        // TODO: implement refresh token
-        return res.status(200).json({ message: "refresh token" });
+        try {
+            // access and refresh jwt token
+            const payload: JwtPayload = {
+                sub: req.auth.sub,
+                email: req.auth.email,
+                role: req.auth.role,
+            };
+            const user = await this.userService.findById(Number(req.auth.sub));
+            if (!user) {
+                const err = createHttpError(
+                    400,
+                    "User not found with the refresh token!",
+                );
+                return next(err);
+            }
+            // delete the previous refresh token from the database
+            await this.tokenService.deleteRefreshToken(+req.auth.jwtid);
+            // Persist the refresh token
+            const newRefreshToken =
+                await this.tokenService.persistRefreshToken(user);
+            const accessToken = this.tokenService.generateAccessToken(payload);
+            const refreshToken = this.tokenService.generateRefreshToken({
+                ...payload,
+                jwtid: String(newRefreshToken.id),
+            });
+            res.cookie("accessToken", accessToken, {
+                domain: "localhost",
+                sameSite: "strict",
+                maxAge: 1000 * 60 * 60, // 1h
+                httpOnly: true,
+                secure: true,
+            });
+            res.cookie("refreshToken", refreshToken, {
+                domain: "localhost",
+                sameSite: "strict",
+                maxAge: 1000 * 60 * 60 * 24 * 365, // 1y
+                httpOnly: true,
+                secure: true,
+            });
+            this.logger.info("User generated refresh token", { id: user.id });
+            return res.status(200).json({ id: user.id });
+        } catch (error) {
+            const err = createHttpError(
+                500,
+                "Failed to generate refresh token",
+            );
+            return next(err);
+        }
     }
 }

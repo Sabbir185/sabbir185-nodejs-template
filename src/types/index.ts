@@ -16,6 +16,7 @@ export interface AuthRequest extends Request {
         sub: string;
         email: string;
         role: string;
+        jwtid: string;
     };
 }
 
